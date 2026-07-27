@@ -1,6 +1,6 @@
 ---
 name: apps-in-toss
-description: 인앱토스(Apps in Toss) 미니앱 개발·제출·심사 대응. granite.config.ts 설정, ait build / ait deploy, 콘솔 등록(브랜드 아이콘·스크린샷·개인정보처리방침), 심사 반려 사유 대응, 한국어 UI 다해상도 QA, 급여·금액 계산 로직 검증에 사용. 트리거 - "인앱토스", "Apps in Toss", "토스 미니앱", "granite.config", "ait build", "ait deploy", "토스 콘솔", "심사 반려", "미니앱 제출".
+description: 인앱토스(Apps in Toss) 미니앱 개발·제출·심사 대응. granite.config.ts 설정, ait build / ait deploy, 콘솔 등록(브랜드 아이콘·스크린샷·개인정보처리방침), 심사 반려 사유 대응, TossAds 광고 그룹 ID 발급·연동, 한국어 UI 다해상도 QA, 급여·금액 계산 로직 검증에 사용. 트리거 - "인앱토스", "Apps in Toss", "토스 미니앱", "granite.config", "ait build", "ait deploy", "토스 콘솔", "심사 반려", "미니앱 제출", "TossAds", "광고 그룹 ID", "attachBanner".
 ---
 
 # Apps in Toss 미니앱 — 실전 체크리스트
@@ -201,15 +201,48 @@ npm run build && npm run deploy
 - **개인정보처리방침** — 별도 입력란이 있다. `docs/PRIVACY.md` 내용을 그대로 넣는다.
   서버 전송이 없고 `localStorage`만 쓴다면 그 사실을 명시하는 게 심사에 유리하다.
 - **네이티브 권한** — 안 쓰면 `permissions: []`로 비워 둔다. 불필요한 권한은 반려 사유가 된다.
-- **광고** — 유닛 ID를 환경변수로만 주입하고 미주입 시 광고 UI가 **아예 렌더되지 않게**
-  (zero footprint) 만들어 두면, ID 미발급 상태로도 제출할 수 있다.
 - **심사 코멘트에 테스트 시나리오를 첨부한다.** 심사자가 그대로 따라 하면 전 기능을 볼 수 있는
-  번호 매긴 순서. 야간 근무처럼 특수 입력이 필요한 기능은 이게 없으면 확인조차 안 된다.
+  번호 매긴 순서. 특수 입력이 필요한 기능(예: 자정 넘김 근무)은 이게 없으면 확인조차 안 된다.
 
 ### 금융·계산 도구라면 면책 고지가 필수다
 
 결과 화면과 스토어 설명 양쪽에 **"모의 계산이며 법적 효력이 없다"**를 명시한다.
 금융 상품 판매·중개가 아니라 참고용 계산 도구임이 드러나야 한다.
+
+## 5-1. 광고(TossAds) 키
+
+### 광고 유형마다 키를 따로 발급받아야 한다
+
+배너와 전면·리워드는 **각각 광고 그룹을 만들어 각각 ID를 받는다.** 하나를 받아서 유형을
+바꿔가며 돌려 쓸 수 없다. 배너만 붙였다가 나중에 리워드를 추가하면 그때 또 발급받아야 한다.
+
+- 콘솔 > 광고 > 광고 그룹에서 생성
+- 형식은 `ait.v2.{채널}.{16자리 hex}` 꼴 (예: `ait.v2.live.…`)
+- **발급한 미니앱에서만 동작한다.** 다른 앱에 넣으면 광고가 뜨지 않는다
+- 사업자 정보·정산 정보 인증이 끝나야 실제(live) ID가 나온다
+- 광고 그룹 자체도 **심사에서 반려될 수 있다.** 앱 심사와 별개 절차다
+
+코드에서 호출부가 유형별로 다르다 — 배너는 `TossAds.attachBanner(adGroupId, el, opts)`,
+전면·리워드는 `loadFullScreenAd` 계열. `TossAds.initialize`는 앱 전체에서 한 번만 부르고,
+`isSupported()`로 구버전 토스 앱을 걸러낸다.
+
+### 키는 환경변수로만, 소스에 박지 않는다
+
+```bash
+# .env  (.gitignore에 반드시 포함)
+VITE_AD_GROUP_ID=ait.v2.live.xxxxxxxxxxxxxxxx
+```
+
+```ts
+export const AD_GROUP_ID = (import.meta.env.VITE_AD_GROUP_ID as string | undefined) ?? '';
+```
+
+빈 문자열이면 광고 컴포넌트가 **아무것도 렌더하지 않게**(zero footprint) 만든다. 그러면
+ID 미발급 상태로도 제출할 수 있고, 빈 회색 박스가 남아 고장난 것처럼 보이는 일도 없다.
+`.env.example`에 키 없이 형식과 발급 방법만 적어 커밋한다.
+
+이 ID는 클라이언트 번들에 그대로 실려 나가므로 API 시크릿 같은 비밀은 아니다. 그래도
+공개 저장소에 커밋하지는 않는다 — 도용 시 내 앱의 광고 지표가 오염된다.
 
 ## 6. 제출 전 최종 점검
 
