@@ -54,11 +54,6 @@ Claude Code가 `description`의 트리거를 보고 알아서 로드합니다 �
 에러 코드)은 바뀔 수 있으니 숫자는 **콘솔과 [공식 문서](https://developers-apps-in-toss.toss.im/)에서
 확인**하세요. 스킬 본문도 그렇게 쓰여 있습니다.
 
-## 이 스킬이 나온 프로젝트
-
-[heysep/alba-pay](https://github.com/heysep/alba-pay) — 주휴수당·야간 가산까지 계산하는
-알바 월급 계산기 미니앱.
-
 ## 기여
 
 같은 함정을 만나셨거나 규격이 바뀐 걸 발견하셨다면 이슈·PR 환영합니다.

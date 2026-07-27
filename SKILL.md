@@ -48,7 +48,7 @@ export default defineConfig({
 `appName`은 딥링크 `intoss://{appName}` 해석에 쓰인다. `src/config.ts`의 `APP_NAME`과
 **문자 단위로 같아야** 한다. 두 곳에 흩어져 있어서 한쪽만 고치기 쉽다.
 
-짧고 좋은 이름은 대부분 **이미 선점돼 있다.** (`albapay` 선점 → `albapaycalc`로 변경)
+짧고 좋은 이름은 대부분 **이미 선점돼 있다.** (원하던 이름이 막혀 접미사를 붙여야 했다)
 이름이 바뀌면 `granite.config.ts`, `src/config.ts`, 문서, 빌드 산출물명(`{appName}.ait`)이
 전부 따라 움직인다. **개발 초기에 콘솔에서 이름부터 확보**하고 시작하는 게 낫다.
 
@@ -135,7 +135,7 @@ print('TL',px(5,5),'BR',px(w-6,h-6),'center',px(w//2,h//2))
 ```bash
 python -c "
 import re
-d=open('albapaycalc.ait','rb').read(); z=d.find(b'PK\x03\x04')
+d=open('{appName}.ait','rb').read(); z=d.find(b'PK\x03\x04')
 for s in re.findall(rb'[ -~]{4,}', d[:z]): print(s.decode())
 "
 ```
